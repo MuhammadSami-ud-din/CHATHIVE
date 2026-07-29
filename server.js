@@ -6,9 +6,16 @@ const cors = require('cors');
 const pool = require('./config/db.js');
 const port = process.env.PORT || 3000
 
+const loginRoute = require('./routes/login.js');
+const registerRoute = require('./routes/register.js');
 
-
+app.use(express.json());
 app.use(cors());
+
+
+
+app.use(loginRoute);
+app.use(registerRoute);
 
 app.get('/test-db' , async(req , res)=>{
     try{
