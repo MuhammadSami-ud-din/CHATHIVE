@@ -5,6 +5,7 @@ const app = express();
 const cors = require('cors');
 const pool = require('./config/db.js');
 const port = process.env.PORT || 3000
+const verifyToken = require('./middleware/authMiddleWare.js');
 
 const loginRoute = require('./routes/login.js');
 const registerRoute = require('./routes/register.js');
@@ -17,7 +18,7 @@ app.use(cors());
 app.use(loginRoute);
 app.use(registerRoute);
 
-app.get('/test-db' , async(req , res)=>{
+app.get('/test-db' ,verifyToken, async(req , res)=>{
     try{
         const [row] = await pool.query('SELECT 1+1 AS result');
         res.json({message: "db connected" , result : row[0].result})
