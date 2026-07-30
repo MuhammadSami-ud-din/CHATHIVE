@@ -9,6 +9,7 @@ const verifyToken = require('./middleware/authMiddleWare.js');
 
 const loginRoute = require('./routes/login.js');
 const registerRoute = require('./routes/register.js');
+const serverRoute = require('./routes/servers.js');
 
 app.use(express.json());
 app.use(cors());
@@ -17,6 +18,7 @@ app.use(cors());
 
 app.use(loginRoute);
 app.use(registerRoute);
+app.use( serverRoute); 
 
 app.get('/test-db' ,verifyToken, async(req , res)=>{
     try{
