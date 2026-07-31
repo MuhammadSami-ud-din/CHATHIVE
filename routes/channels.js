@@ -15,7 +15,7 @@ router.post('/channels/:server_id' , verifyToken , async(req , res)=>{
     const [info] = await pool.query(`SELECT role FROM server_members WHERE members_id=? AND server_id = ?` , [memberId , server_id]);
     if (!info.length ){
         console.log({info});
-        return res.status(500).json({error : "Databse error"});
+        return res.status(500).json({error : "Database error"});
     }
     const isAuthorized = info[0].role === 'owner' || info[0].role === 'admin' ? true : false;
 
@@ -52,7 +52,7 @@ try{
     }
     
     }
-   catch{ return res.status(500).json({error : "Databaaase error"}); }
+   catch{ return res.status(500).json({error : "Database error"}); }
 
 })
 
