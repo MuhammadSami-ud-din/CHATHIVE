@@ -11,6 +11,7 @@ const loginRoute = require('./routes/login.js');
 const registerRoute = require('./routes/register.js');
 const serverRoute = require('./routes/servers.js');
 const channelRoute = require('./routes/channels.js');
+const joinRoute = require('./routes/join.js');
 
 app.use(express.json());
 app.use(cors());
@@ -21,6 +22,7 @@ app.use(loginRoute);
 app.use(registerRoute);
 app.use(serverRoute); 
 app.use(channelRoute);
+app.use(joinRoute);
 
 app.get('/test-db' ,verifyToken, async(req , res)=>{
     try{
