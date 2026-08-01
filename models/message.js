@@ -1,8 +1,7 @@
-const { Timestamp } = require('mongodb');
 const mongoose = require('mongoose');;
 
 
-const messageSchemea = new mongoose.schema({
+const messageSchemea = new mongoose.Schema({
     channel_id : {
         type : Number,
         required : true
@@ -15,9 +14,9 @@ const messageSchemea = new mongoose.schema({
         type : String,
         required : true
     },
-    timestamp: {
+    Date: {
         type : Date,
-        required : Date.now
+        default : Date.now
     }
 
 })
