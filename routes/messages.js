@@ -7,37 +7,39 @@ const verifyToken = require('../middleware/authMiddleWare.js');
 const router = express.Router();
 
 
+
+async function verifyUser (channel_id , userId){
+     const [id] = await pool.query(`SELECT sm.members_id FROM server_members sm
+    JOIN channels ch ON ch.current_server_id = sm.server_id
+    WHERE ch.channel_id = ?
+    AND sm.members_id = ? `, [channel_id , userId]);
+
+
+    return id.length > 0;
+}
+
 router.post ('/channels/:channel_id/messages' , verifyToken , async (req , res)=>{
     const {channel_id} = req.params;
     const {message_content} = req.body;
     const userId = req.user.id;
-    let isMember = true;
+    
+
+
     try {
-    const [id] = await pool.query(`SELECT current_server_id FROM channels WHERE channel_id = ? `, [channel_id]);
+    const isMember = await verifyUser(channel_id , userId);
 
-    if (id.length === 0){
-        return res.status(500).json({error : "Database error"});
+    if (!isMember){
+        return res.status(403).json({error : "U are not a Part of this server , U cant send messages"});
     }
 
-    const server_id = id[0].current_server_id;
-try{
-    const [is_member] = await pool.query(`SELECT server_id FROM server_members WHERE server_id = ?  AND members_id = ? `, [server_id , userId]);
 
-    if(is_member.length === 0 ){
-        isMember = false;
-        return res.status(500).json({error : "U are not a part of this server so U Can't send messages"});
-    }
-}catch(error) {
-     console.log(error);
-    return res.status(500).json({error : "Database error"});
-}
 
 } catch(error) {
      console.log(error);
     return res.status(500).json({error : "Database error"});
 }
 
-    if (isMember){
+   
       try{
         const newMessage = await message.create({
             channel_id ,
@@ -54,10 +56,61 @@ try{
      console.log(error);
     return res.status(500).json({error : "Database error"});
 }
-    }
+    
 
 
 
 })
 
+
+router.get ('/channels/:channel_id/messages' , verifyToken , async (req , res)=>{
+    const {channel_id} = req.params;
+    const userId = req.user.id;
+try{
+    const isMember = await verifyUser(channel_id , userId);
+
+    if (!isMember){
+        return res.status(403).json({error : "U are not a member and cant see messages"});
+    }
+}catch(error) {
+     console.log(error);
+    return res.status(500).json({error : "Database error"});
+}
+
+try {
+    const channelMessages = await message.find({channel_id})
+    res.status(201).json({
+        success : true,
+        data : channelMessages
+    })
+}
+catch(error) {
+     console.log(error);
+    return res.status(500).json({error : "Database error"});
+}
+
+
+
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
 module.exports = router;
+
+
+
+
+
+
+
+
