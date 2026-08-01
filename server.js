@@ -1,9 +1,11 @@
 
 require('dotenv').config();
+
 const express = require ('express');
 const app = express();
 const cors = require('cors');
 const pool = require('./config/db.js');
+require('./config/mongo.js');
 const port = process.env.PORT || 3000
 const verifyToken = require('./middleware/authMiddleWare.js');
 
