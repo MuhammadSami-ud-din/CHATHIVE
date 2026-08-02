@@ -17,6 +17,7 @@ const serverRoute = require('./routes/servers.js');
 const channelRoute = require('./routes/channels.js');
 const joinRoute = require('./routes/join.js');
 const messageRoute = require('./routes/messages.js');
+const DMRoute = require('./routes/directMessages.js');
 
 app.use(express.json());
 app.use(cors());
@@ -29,6 +30,7 @@ app.use(serverRoute);
 app.use(channelRoute);
 app.use(joinRoute);
 app.use(messageRoute);
+app.use(DMRoute);
 
 app.get('/test-db' ,verifyToken, async(req , res)=>{
     try{
