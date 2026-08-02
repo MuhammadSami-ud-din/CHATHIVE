@@ -13,6 +13,7 @@ const io = new Server(server , {
     }
 }
 )
+app.set('io' , io);
 
 const cors = require('cors');
 require('./config/mongo.js');
@@ -75,14 +76,27 @@ jwt.verify(token , secret  , (err , decoded)=>{
 })
 })
 
+
 io.on('connection' , (socket)=>{
    console.log(' A user Connected' , socket.id);
+
+   socket.on('join_channel' , (channel_id)=>{
+    socket.join(`channel_${channel_id}`);
+    console.log(`user ${socket.user.id} joined the channel: ${channel_id}`)
+   })
+
+   socket.on('join_conversation' , (conversation_id)=>{
+    socket.join(`conversation_${conversation_id}`);
+     console.log(`user ${socket.user.id} joined the channel: ${conversation_id}`)
+   })
 
    socket.on('disconnect' , ()=>{
     console.log('A user disconnected' , socket.id);
    })
 
 })
+
+
 
 // app.get('/' , (req , res) =>{
 //     const responseData = {

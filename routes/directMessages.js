@@ -39,6 +39,10 @@ try{
       const savedMessage = await newMessage.save();
 
 
+    const io = req.app.get('io');
+    console.log(`conversation_${savedMessage.conversation_id}` , savedMessage);
+    io.to(`conversation_${savedMessage.conversation_id}`).emit('DMmessage' , savedMessage);
+
 
       return res.status(201).json({
       message: "Message sent successfully",
@@ -71,7 +75,8 @@ const savedConversation = await newConversation.save();
 
       const savedMessage = await firstMessage.save();
 
-
+    const io = req.app.get('io');
+    io.to(`conversation_${savedMessage.conversation_id}`).emit('DMmessage' , savedMessage);
 
       return res.status(201).json({
       message: "Message sent successfully",

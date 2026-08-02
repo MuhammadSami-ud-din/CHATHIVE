@@ -47,6 +47,10 @@ router.post ('/channels/:channel_id/messages' , verifyToken , async (req , res)=
             content : message_content
         })
 
+  const io = req.app.get('io');
+  console.log(`channel_${channel_id}` , newMessage)
+io.to(`channel_${channel_id}`).emit('newMessage', newMessage);
+
         res.status(201).json({
             message : "Message sent successfully",
             data : newMessage

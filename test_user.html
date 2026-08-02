@@ -9,13 +9,27 @@
     const socket = io("http://localhost:5000",
     {
       auth :{
-        token : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhbWlAZW1haWwuY29tIiwiaWQiOjIsImlhdCI6MTc4NTcwMTMzMCwiZXhwIjoxNzg1NzA0OTMwfQ.rQC3JERsD2lxZLNe6dgLBu-OrSk9bUARkIKo-d5i7fA"
+        token : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZW1haWwuY29tIiwiaWQiOjEsImlhdCI6MTc4NTcwNjA4NywiZXhwIjoxNzg1NzA5Njg3fQ.jw6ZlwhznNUc-ca73U9enMERtxP4pSog3wxuaRBBxNo"
       }
     });
 
     socket.on('connect', () => {
       console.log('Connected to server! Socket ID:', socket.id);
+      // socket.emit('join_channel' , 16);
+      socket.emit('join_conversation' , '6a6fb13b6d7253c63c9721d3')
     });
+
+    // socket.on('newMessage' , (msg)=>{
+    //   console.log("new message recieed" , msg);
+    // })
+
+    socket.on('DMmessage' , (msg)=>{
+      console.log('new msg arrived' , msg);
+    })
+
+    socket.on('new_error' , (err)=>{
+      console.log("error:" , err.message)
+    })
   </script>
 </body>
 </html>
