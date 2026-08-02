@@ -20,6 +20,8 @@ require ("./models/message.js")
 const pool = require('./config/db.js');
 const port = process.env.PORT || 3000
 const verifyToken = require('./middleware/authMiddleWare.js');
+const jwt = require('jsonwebtoken');
+const secret = process.env.JWT_SECRET;
 
 
 
@@ -54,6 +56,23 @@ app.get('/test-db' ,verifyToken, async(req , res)=>{
     };
     
     
+})
+ 
+io.use((socket , next) =>{
+const token = socket.handshake.auth.token;
+
+ if(!token){
+        return next(new Error('No Token provided'))
+    }
+
+jwt.verify(token , secret  , (err , decoded)=>{
+    if(err){
+        return next(new Error('invalid Token'))
+    }
+
+    socket.user = decoded;
+    next();
+})
 })
 
 io.on('connection' , (socket)=>{

@@ -6,7 +6,12 @@
 <body>
   <h1>Socket.io Test</h1>
   <script>
-    const socket = io("http://localhost:5000");
+    const socket = io("http://localhost:5000",
+    {
+      auth :{
+        token : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhbWlAZW1haWwuY29tIiwiaWQiOjIsImlhdCI6MTc4NTcwMTMzMCwiZXhwIjoxNzg1NzA0OTMwfQ.rQC3JERsD2lxZLNe6dgLBu-OrSk9bUARkIKo-d5i7fA"
+      }
+    });
 
     socket.on('connect', () => {
       console.log('Connected to server! Socket ID:', socket.id);
