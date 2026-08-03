@@ -18,6 +18,9 @@ async function loginUser(PlainPassword , hashedPasswordFromDatabase) {
     }else{
         console.log("invalid password ");
         return false;
+        
+    
+        
     }
     
 }
@@ -50,6 +53,9 @@ router.post('/login' , async (req , res)=>{
    const {password_hash : hashedPasswordFromDatabase , id } = userRecord;
   
    const loginValid = await loginUser(password , hashedPasswordFromDatabase);
+   if(!loginValid){
+        return res.status(401).json({error : "Incorrect Password"});
+    }
 
    if (loginValid){
     const payload = {
@@ -64,6 +70,7 @@ router.post('/login' , async (req , res)=>{
             token : token
         }
     )
+    
    }
 
    
