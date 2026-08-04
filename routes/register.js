@@ -24,6 +24,10 @@ catch(error){
 router.post('/register' , async (req , res)=>{
     const {userName , email , plainPassword} = req.body;
 
+    if(!userName || !email || !plainPassword){
+        return res.status(401).json({error : "Please enter the Credentials"})
+    }
+
    const hashedPassword = await registerUser(plainPassword);
    
 if(!hashedPassword){
@@ -39,7 +43,7 @@ if(!hashedPassword){
    }
    catch(error){
       console.error("MySQL Query Failed:", error.message, "Error Code:", error.code);
-      
+
     if (error.code ==='ER_DUP_ENTRY'){
        return  res.status(409).json({error : "email or username already exists"})
     }
