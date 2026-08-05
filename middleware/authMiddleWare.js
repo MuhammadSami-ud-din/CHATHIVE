@@ -14,7 +14,7 @@ function verifyToken(req , res ,next){
     }
 
     jwt.verify(token , secret , (err , decoded) => {
-        if (err){return res.status(401).json({  error : "Invlaid token" })};
+        if (err){return res.status(401).json({  error : "Invalid token" })};
         req.user = decoded;
         next();
     })
