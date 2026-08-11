@@ -56,4 +56,21 @@ router.get('/servers' , verifyToken , async (req, res )=>{
 
 })
 
+router.get(`/servers/me` , verifyToken , async (req, res )=>{
+    const userId = req.user.id;
+   try{
+    const [servers] = await pool.query (`SELECT * FROM servers S JOIN server_members SM ON S.server_id = SM.server_id
+        WHERE SM.members_id = ? ` , [userId]);
+    
+    if(servers.length === 0){
+       return res.status(500).json({error : "no servers found"});
+    }
+    res.status(200).json(servers);
+
+}catch{
+    res.status(500).json({error : "cannot Fetch Database error"});
+}
+
+})
+
 module.exports = router;

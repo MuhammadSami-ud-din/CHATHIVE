@@ -152,5 +152,58 @@ router.get('/messages/dm/:receiver_id' , verifyToken , async(req , res)=>{
 
 
 
+router.get('/messages/dm' , verifyToken , async(req , res)=>{
+   
+    const user_id = req.user.id;
+  
+
+
+    try{
+        
+      const conversation = await conversations.findOne({
+        $or: [
+           {user1_id : user_id },
+           {user2_id : user_id}
+        ]
+    }) 
+   
+
+
+     if(conversation.length === 0 ){
+        return res.status(200).json({success : true , data : []});
+     }
+     console.log(conversation.user1_id , user_id)
+
+
+       const targetUser = (user_id === conversation.user1_id) ? conversation.user2_id : conversation.user1_id
+     
+        const [query] = await pool.query(`SELECT * FROM USERS WHERE id=?`, [conversation.user2_id ])
+        console.log()
+ 
+    
+     const [{password_hash , ...userInfo}] = query ; 
+     console.log(userInfo)
+
+
+
+     res.status(200).json({
+        success : true,
+        data : [userInfo]
+     })
+
+
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).json({
+            error : "agregation error or database error"
+        })
+
+    }
+
+})
+
+
+
 
 module.exports = router;
