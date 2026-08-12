@@ -125,17 +125,33 @@ router.get('/messages/dm/:receiver_id' , verifyToken , async(req , res)=>{
             }
         }
      ])
-   
 
+      const [query] = await pool.query(`SELECT * FROM USERS WHERE id=?`, [receiverNum ])
+
+     if (query.length === 0) {
+            return res.status(404).json({ success: false, error: "User not found" });
+        }
+
+        const {password_hash , ...userRestInfo} = query[0]
+    
 
      if(chatMessages.length === 0 ){
-        return res.status(200).json({success : true , data : []});
+        return res.status(200).json({
+            success: true,
+            data: [],
+            my_id: sender_id,
+            user: userRestInfo
+        });
      }
+     
+     
 
 
      res.status(200).json({
         success : true,
-        data : chatMessages[0].chat_messages
+        data : chatMessages[0].chat_messages,
+        my_id : sender_id,
+        user : userRestInfo 
      })
 
 
@@ -160,35 +176,51 @@ router.get('/messages/dm' , verifyToken , async(req , res)=>{
 
     try{
         
-      const conversation = await conversations.findOne({
+    const conversationHas = await conversations.find({
         $or: [
            {user1_id : user_id },
            {user2_id : user_id}
         ]
     }) 
+
+    const FriendsInfos = []
    
 
 
-     if(conversation.length === 0 ){
+     if(conversationHas.length === 0 ){
         return res.status(200).json({success : true , data : []});
      }
-     console.log(conversation.user1_id , user_id)
 
-
-       const targetUser = (user_id === conversation.user1_id) ? conversation.user2_id : conversation.user1_id
      
-        const [query] = await pool.query(`SELECT * FROM USERS WHERE id=?`, [conversation.user2_id ])
-        console.log()
+
+     await Promise.all(
+        conversationHas.map(async (conversation , index)=>{
+        const targetUser = (user_id === conversation.user1_id) ? conversation.user2_id : conversation.user1_id
+     
+        const [query] = await pool.query(`SELECT * FROM USERS WHERE id=?`, [targetUser])
+        
  
+     
+      if (query && query.length > 0) {
+           const { password_hash, ...userInfo } = query[0]; 
+           FriendsInfos[index] = userInfo;
+       } else {
+           FriendsInfos[index] = null; 
+       }
+     
     
-     const [{password_hash , ...userInfo}] = query ; 
-     console.log(userInfo)
+
+       })
+     ) 
+       
+     const FriendsInfo = FriendsInfos.filter(Boolean);
+    
 
 
 
      res.status(200).json({
         success : true,
-        data : [userInfo]
+        data : FriendsInfo
      })
 
 

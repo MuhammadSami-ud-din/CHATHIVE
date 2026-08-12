@@ -87,7 +87,7 @@ io.on('connection' , (socket)=>{
 
    socket.on('join_conversation' , (conversation_id)=>{
     socket.join(`conversation_${conversation_id}`);
-     console.log(`user ${socket.user.id} joined the channel: ${conversation_id}`)
+     console.log(`user ${socket.user.id} joined the Conversation: ${conversation_id}`)
    })
 
    socket.on('disconnect' , ()=>{
