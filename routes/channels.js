@@ -64,12 +64,17 @@ router.get('/channels/:server_id', verifyToken , async(req,res)=>{
 
     try{
         const [query] = await pool.query(`SELECT * FROM channels where current_server_id = ?` , [server_id]);
+        const [queryServer] = await pool.query(`SELECT * FROM servers where server_id = ?` , [server_id]);
         
-        if(query.length === 0){
+        if(query.length  === 0){
             return res.status(200).json({message : "No channels found" ,  data : []});
         }
+       
 
-        res.status(201).json(query);
+        res.status(201).json({
+            Channels : query , 
+            Serverinfo : queryServer
+        });
     }
     catch{
         res.status(500).json({error : "Database error"})
