@@ -20,31 +20,31 @@ async function verifyUser (channel_id , userId){
 
 router.post ('/channels/:channel_id/messages' , verifyToken , async (req , res)=>{
     const {channel_id} = req.params;
-    const {message_content} = req.body;
+    const {msg_content} = req.body;
     const userId = req.user.id;
     
 
 
-    try {
-    const isMember = await verifyUser(channel_id , userId);
+//     try {
+//     const isMember = await verifyUser(channel_id , userId);
 
-    if (!isMember){
-        return res.status(403).json({error : "U are not a Part of this server , U cant send messages"});
-    }
+//     if (!isMember){
+//         return res.status(403).json({error : "U are not a Part of this server , U cant send messages"});
+//     }
 
 
 
-} catch(error) {
-     console.log(error);
-    return res.status(500).json({error : "Database error"});
-}
+// } catch(error) {
+//      console.log(error);
+//     return res.status(500).json({error : "Database error"});
+// }
 
    
       try{
         const newMessage = await message.create({
             channel_id ,
             sender_id : userId,
-            content : message_content
+            content : msg_content
         })
 
   const io = req.app.get('io');
@@ -71,21 +71,19 @@ router.get ('/channels/:channel_id/messages' , verifyToken , async (req , res)=>
     const {channel_id} = req.params;
     const userId = req.user.id;
 try{
-    const isMember = await verifyUser(channel_id , userId);
+    // const isMember = await verifyUser(channel_id , userId);
 
-    if (!isMember){
-        return res.status(403).json({error : "U are not a member and cant see messages"});
-    }
-}catch(error) {
-     console.log(error);
-    return res.status(500).json({error : "Database error"});
-}
+    // if (!isMember){
+    //     return res.status(403).json({error : "U are not a member and cant see messages"});
+    // }
 
-try {
+
+
     const channelMessages = await message.find({channel_id})
     res.status(201).json({
         success : true,
-        data : channelMessages
+        data : channelMessages ,
+        my_id : userId
     })
 }
 catch(error) {
