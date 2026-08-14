@@ -73,4 +73,21 @@ router.get(`/servers/me` , verifyToken , async (req, res )=>{
 
 })
 
+
+router.get('/servers/:server_id' , verifyToken , async (req, res )=>{
+    const {server_id} = req.params;
+   try{
+    const [channels] = await pool.query ('SELECT * FROM channels WHERE current_server_id = ?' , [server_id]);
+    
+    if(channels.length === 0){
+       return res.status(500).json({error : "no channels found"});
+    }
+    res.status(200).json(channels);
+
+}catch{
+    res.status(500).json({error : "cannot Fetch Database error"});
+}
+
+})
+
 module.exports = router;

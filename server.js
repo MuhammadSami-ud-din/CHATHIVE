@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 
 const express = require ('express');
@@ -20,6 +19,7 @@ require('./config/mongo.js');
 require ("./models/message.js")
 const pool = require('./config/db.js');
 const port = process.env.PORT || 3000
+const host = process.env.Host || '0.0.0.0'
 const verifyToken = require('./middleware/authMiddleWare.js');
 const jwt = require('jsonwebtoken');
 const secret = process.env.JWT_SECRET;
@@ -107,6 +107,6 @@ io.on('connection' , (socket)=>{
 //     res.json(responseData);
 // })
 
-server.listen(port , ()=>{
-    console.log(`hello u are a fool and servers is running on port ${port}`)
+server.listen(port , host , ()=>{
+    console.log(`hello u are a fool and servers is running on port ${host}`)
 })
