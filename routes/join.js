@@ -36,4 +36,35 @@ catch(error){
 
 })
 
+
+router.get('/server_join/:serverId' , verifyToken , async (req , res)=>{
+const {serverId} = req.params;
+const userId = req.user.id;
+let ismember = true
+
+
+
+
+try{
+const [member] = await pool.query(`SELECT * FROM  server_members WHERE server_id = ? AND members_id = ?` , [serverId , userId]);
+
+     if(member.length === 0){
+        ismember = false
+        return res.status(200).json({ismember})
+     }
+
+     return res.status(201).json({
+        ismember
+    });
+}
+catch(error){
+    console.log(error);
+    return res.status(500).json({error : "Database error"});
+}
+
+
+
+})
+
+
 module.exports = router;

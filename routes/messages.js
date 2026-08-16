@@ -25,19 +25,19 @@ router.post ('/channels/:channel_id/messages' , verifyToken , async (req , res)=
     
 
 
-//     try {
-//     const isMember = await verifyUser(channel_id , userId);
+    try {
+    const isMember = await verifyUser(channel_id , userId);
 
-//     if (!isMember){
-//         return res.status(403).json({error : "U are not a Part of this server , U cant send messages"});
-//     }
+    if (!isMember){
+        return res.status(403).json({error : "U are not a Part of this server , U cant send messages"});
+    }
 
 
 
-// } catch(error) {
-//      console.log(error);
-//     return res.status(500).json({error : "Database error"});
-// }
+} catch(error) {
+     console.log(error);
+    return res.status(500).json({error : "Database error"});
+}
 
    
       try{
@@ -71,11 +71,11 @@ router.get ('/channels/:channel_id/messages' , verifyToken , async (req , res)=>
     const {channel_id} = req.params;
     const userId = req.user.id;
 try{
-    // const isMember = await verifyUser(channel_id , userId);
+    const isMember = await verifyUser(channel_id , userId);
 
-    // if (!isMember){
-    //     return res.status(403).json({error : "U are not a member and cant see messages"});
-    // }
+    if (!isMember){
+        return res.status(403).json({error : "U are not a member and cant see messages"});
+    }
 
 
 
