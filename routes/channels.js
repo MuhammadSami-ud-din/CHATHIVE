@@ -15,7 +15,7 @@ router.post('/channels/:server_id' , verifyToken , async(req , res)=>{
     const [info] = await pool.query(`SELECT role FROM server_members WHERE members_id=? AND server_id = ?` , [memberId , server_id]);
     if (!info.length ){
         console.log({info});
-        return res.status(500).json({error : "Databaseeeerror"});
+        return res.status(500).json({error : "Database error"});
     }
     const isAuthorized = info[0].role === 'owner' || info[0].role === 'admin' ? true : false;
 
@@ -61,19 +61,24 @@ try{
 
 router.get('/channels/:server_id', verifyToken , async(req,res)=>{
     const { server_id } = req.params;
+    const user_id = req.user.id;
 
     try{
         const [query] = await pool.query(`SELECT * FROM channels where current_server_id = ?` , [server_id]);
         const [queryServer] = await pool.query(`SELECT * FROM servers where server_id = ?` , [server_id]);
+        const [Role] = await pool.query(`SELECT * FROM server_members where server_id = ? AND members_id = ? AND role IN ('owner' , 'admin')` , [server_id , user_id ]);
         
-        if(query.length  === 0){
-            return res.status(200).json({message : "No channels found" ,  Channels : [] , Serverinfo : queryServer});
+        if(query.length  === 0 ){
+            return res.status(200).json({message : "No channels found" ,  Channels : [] , Serverinfo : queryServer , role : Role});
         }
+
        
 
         res.status(201).json({
+            message : 'Success' , 
             Channels : query , 
-            Serverinfo : queryServer
+            Serverinfo : queryServer,
+            role: Role
         });
     }
     catch{

@@ -17,11 +17,17 @@ try{
 const [memberId] = await pool.query(`INSERT INTO server_members (server_id , members_id)
     VALUES (?,?)` , [serverId , userId]);
 
+    const [serverInfo] = await pool.query(`SELECT * FROM servers WHERE  server_id = ? ` , [serverId]);
+      if(serverInfo.length === 0){
+        return res.status(500).json({error : "Cannot fetch"});
+      }
+
 
 
      return res.status(201).json({
         message : "U are now a member of this server",
-        memberId : memberId.insertId
+        memberId : memberId.insertId,
+        serverInfo : serverInfo[0]
     });
 }
 catch(error){
