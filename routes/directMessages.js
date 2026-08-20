@@ -33,7 +33,7 @@ try{
             });
 
             if (!conversation) {
-                return res.status(440).json({ error: "Conversation not found. Please initialize chat first." });
+                return res.status(404).json({ error: "Conversation not found. Please initialize chat first." });
             }
             targetConversationId = conversation.conversation_id;
         }    
@@ -136,12 +136,13 @@ router.get('/messages/dm/:receiver_id' , verifyToken , async(req , res)=>{
 
     try{
         const receiverNum = Number(receiver_id);
+         const senderNum = Number(sender_id);
      const chatMessages = await conversations.aggregate([
        {
         $match: {
              $or: [
-                {user1_id : sender_id , user2_id : receiverNum },
-                {user1_id : receiverNum , user2_id : sender_id}
+                {user1_id : senderNum , user2_id : receiverNum },
+                {user1_id : receiverNum , user2_id : senderNum}
              ]
         }
          },
