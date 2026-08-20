@@ -18,7 +18,7 @@ router.post('/servers',verifyToken , async (req , res)=>{
     
     try{
     const [query] =  await pool.query(`INSERT INTO servers (server_name , server_description, server_dest , owner_id )
-        VALUES (? ,? ,? , ?)`,[serverName , serverDescription , serverDest , owner]);
+        VALUES (? ,? ,? , ?)`,[serverName , serverDescription , serverDest  , owner]);
 
 
        await pool.query(`INSERT INTO server_members ( server_id , members_id , role)
@@ -61,17 +61,26 @@ router.get(`/servers/me` , verifyToken , async (req, res )=>{
    try{
     const [servers] = await pool.query (`SELECT * FROM servers S JOIN server_members SM ON S.server_id = SM.server_id
         WHERE SM.members_id = ? ` , [userId]);
+
+    const [userInfo] = await pool.query (`SELECT username , id , avatar , created_at FROM USERS WHERE id = ? ` , [userId]);    
     
-    if(servers.length === 0){
+    if(servers.length === 0 ){
        return res.status(500).json({error : "no servers found"});
     }
-    res.status(200).json(servers);
+    if(userInfo.length === 0 ){
+       return res.status(500).json({error : "Error Cannot find the user"});
+    }
+    return res.status(200).json({
+        servers,
+        userInfo : userInfo[0]
+   });
 
 }catch{
     res.status(500).json({error : "cannot Fetch Database error"});
 }
 
 })
+
 
 
 
