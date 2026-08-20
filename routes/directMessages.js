@@ -14,25 +14,39 @@ const router = express.Router();
 router.post('/messages/dm/:receiver_id' , verifyToken , async(req , res)=>{
     const {receiver_id} = req.params;
     const sender_id = req.user.id;
-    const {msg_content} = req.body;
+    const { msg_content, conversation_id } = req.body;
 
 try{
-     const receiverNum = Number(receiver_id);
-    const conversation_id = await conversations.findOne({
-        $or: [
-           {user1_id : sender_id , user2_id : receiverNum},
-           {user1_id : receiverNum , user2_id : sender_id}
-        ]
-    }) 
 
-    if(conversation_id){
-      const newMessage = new DM({
-        conversation_id : conversation_id.conversation_id,
-        sender_id : sender_id,
-        content : msg_content
-       
+    if (!msg_content || !msg_content.trim()) {
+            return res.status(400).json({ error: "Message content cannot be empty" });
+        }
+    const receiverNum = Number(receiver_id);
+    let targetConversationId = conversation_id;
 
-      })
+        if (!targetConversationId) {
+            const conversation = await conversations.findOne({
+                $or: [
+                    { user1_id: sender_id, user2_id: receiverNum },
+                    { user1_id: receiverNum, user2_id: sender_id }
+                ]
+            });
+
+            if (!conversation) {
+                return res.status(440).json({ error: "Conversation not found. Please initialize chat first." });
+            }
+            targetConversationId = conversation.conversation_id;
+        }    
+
+    
+
+    const newMessage = new DM({
+            conversation_id: targetConversationId,
+            sender_id: sender_id,
+            content: msg_content
+        });
+
+   
 
       newMessage.message_id = newMessage._id;
 
@@ -51,41 +65,7 @@ try{
     
     }
 
-
- const newConversation = new conversations({
-        user1_id : sender_id,
-        user2_id : receiverNum,
-   });
-
-newConversation.conversation_id = newConversation._id;
-
-const savedConversation = await newConversation.save();
-
-
-
- const firstMessage = new DM({
-        conversation_id : savedConversation.conversation_id,
-        sender_id : sender_id,
-        content : msg_content
-       
-
-      })
-
-      firstMessage.message_id = firstMessage._id;
-
-      const savedMessage = await firstMessage.save();
-
-    const io = req.app.get('io');
-    io.to(`conversation_${savedMessage.conversation_id}`).emit('DMmessage' , savedMessage);
-
-      return res.status(201).json({
-      message: "Message sent successfully",
-      data: savedMessage
-});
-
-
-
-}catch(error){
+catch(error){
     console.log(error)
     res.status(500).json({
         error : "Database error"
@@ -95,6 +75,56 @@ const savedConversation = await newConversation.save();
 
 
 })
+
+
+ router.post('/messages/get_Create/:receiver_id', verifyToken, async (req, res) => {
+    const { receiver_id } = req.params;
+    const sender_id = req.user.id;
+
+    try {
+        const senderNum = Number(sender_id);
+        const receiverNum = Number(receiver_id);
+
+        if (isNaN(receiverNum)) {
+            return res.status(400).json({ error: "Invalid receiver ID format" });
+        }
+
+       
+        const existingConversation = await conversations.findOne({
+            $or: [
+                { user1_id: senderNum, user2_id: receiverNum },
+                { user1_id: receiverNum, user2_id: senderNum }
+            ]
+        });
+
+       
+        if (existingConversation) {
+            return res.status(200).json({
+                message: "Existing conversation retrieved",
+                conversation: existingConversation
+            });
+        }
+
+       
+        const newConversation = new conversations({
+            user1_id: senderNum,
+            user2_id: receiverNum,
+        });
+
+        newConversation.conversation_id = newConversation._id;
+        const savedConversation = await newConversation.save();
+
+       
+        return res.status(201).json({
+            message: "New Conversation Created",
+            conversation: savedConversation
+        });
+
+    } catch (error) {
+        console.error("Create Conversation Error:", error);
+        return res.status(500).json({ error: "Database error" });
+    }
+});
 
 
 
@@ -229,6 +259,51 @@ router.get('/messages/dm' , verifyToken , async(req , res)=>{
         console.log(error);
         res.status(500).json({
             error : "agregation error or database error"
+        })
+
+    }
+
+})
+
+
+router.get('/users/search' , verifyToken , async(req , res)=>{
+   
+    const { query } = req.query;
+
+    if (!query || !query.trim()) {
+        return res.status(200).json({
+            success: true,
+            data: []
+        });
+    }
+
+    const cleanedQuery = query.replace(/[%_]/g , '\\$&')
+    console.log(cleanedQuery , query)
+  
+
+
+    try{
+        
+   const [Users] = await pool.query(`SELECT username , id , created_at , avatar , email  FROM USERS WHERE username LIKE CONCAT('%' , ? , '%') ` , [cleanedQuery])
+   console.log(Users)
+
+  if (Users.length === 0){
+    return res.status(200).json({message : "No User with this Username Found!!" });
+  }
+
+
+
+     return res.status(200).json({
+        success : true,
+        data : Users
+     })
+
+
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).json({
+            error : "Database error"
         })
 
     }
