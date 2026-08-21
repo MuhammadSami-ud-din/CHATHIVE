@@ -55,6 +55,9 @@ router.post('/channels/:server_id', verifyToken, async (req, res) => {
     }
     catch (error) {
         console.log(error);
+        if (error.code === "ER_DUP_ENTRY"){
+          return res.status(401).json({error : "Channel already exists"});
+        }
         return res.status(500).json({ error: "Database error" });
     }
 

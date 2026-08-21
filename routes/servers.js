@@ -24,9 +24,12 @@ router.post('/servers',verifyToken , async (req , res)=>{
        await pool.query(`INSERT INTO server_members ( server_id , members_id , role)
         VALUES (?,?,?)`, [query.insertId, owner , "owner"]); 
 
+        const [newServer] =  await pool.query(`SELECT * FROM servers WHERE server_id = ? `,[query.insertId]);
+
+
         res.status(201).json({
             message : "server created successfully",
-            serverId : query.insertId
+            newServer : newServer[0]
         })
     }
     catch(error){
