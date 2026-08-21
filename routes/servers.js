@@ -45,9 +45,7 @@ router.get('/servers' , verifyToken , async (req, res )=>{
    try{
     const [servers] = await pool.query ('SELECT * FROM servers');
     
-    if(servers.length === 0){
-       return res.status(500).json({error : "no servers found"});
-    }
+    
     res.status(200).json(servers);
 
 }catch{
@@ -64,11 +62,8 @@ router.get(`/servers/me` , verifyToken , async (req, res )=>{
 
     const [userInfo] = await pool.query (`SELECT username , id , avatar , created_at FROM USERS WHERE id = ? ` , [userId]);    
     
-    if(servers.length === 0 ){
-       return res.status(500).json({error : "no servers found"});
-    }
     if(userInfo.length === 0 ){
-       return res.status(500).json({error : "Error Cannot find the user"});
+       return res.status(404).json({error : "Cannot find the user"});
     }
     return res.status(200).json({
         servers,

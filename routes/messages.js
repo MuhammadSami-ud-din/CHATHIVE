@@ -30,6 +30,10 @@ router.post ('/channels/:channel_id/messages' , verifyToken , async (req , res)=
     const userId = req.user.id;
     
 
+     if (!msg_content || !msg_content.trim()) {
+        return res.status(400).json({ error: "Message content cannot be empty" });
+    }
+
 
     try {
        
