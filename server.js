@@ -6,12 +6,12 @@ const {Server} = require('socket.io')
 const app = express();
 
 const server = http.createServer(app);
-const io = new Server(server , {
-    cors : {
-        origin : '*'
-    }
-}
-)
+const io = new Server(server, {
+  cors: {
+    origin: "https://chathive-chat.vercel.app",
+    credentials: true
+  }
+});
 app.set('io' , io);
 
 const cors = require('cors');
@@ -36,7 +36,10 @@ const DMRoute = require('./routes/directMessages.js');
 const { Socket } = require('dgram');
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "https://chathive-chat.vercel.app", 
+  credentials: true
+}));
 
 
 app.use(loginRoute);
@@ -108,5 +111,5 @@ io.on('connection' , (socket)=>{
 // })
 
 server.listen(port , host , ()=>{
-    console.log(`hello u are a fool and servers is running on port ${host}`)
+    console.log(`hello u are a fool and servers is running on port ${port}`)
 })
