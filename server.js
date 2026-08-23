@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://chathive-chat.vercel.app",
+    origin: ["https://chathive-chat.vercel.app", "http://localhost:5173", "http://192.168.18.40:5173"],
     credentials: true
   }
 });
@@ -37,7 +37,7 @@ const { Socket } = require('dgram');
 
 app.use(express.json());
 app.use(cors({
-  origin: "https://chathive-chat.vercel.app", 
+  origin: ["https://chathive-chat.vercel.app", "http://localhost:5173", "http://192.168.18.40:5173"],
   credentials: true
 }));
 
