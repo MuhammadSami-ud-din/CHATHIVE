@@ -51,7 +51,14 @@ router.get('/servers', verifyToken, async (req, res) => {
     try {
         const cacheKey = 'servers:all';
 
-        const cached = await redis.get(cacheKey);
+        let cached = null;
+
+       
+        try {
+            cached = await redis.get(cacheKey);
+        } catch (redisErr) {
+            console.warn("⚠️ Redis cache unavailable, falling back to Database:", redisErr.message);
+        }
         if (cached) {
             const parsedData = typeof cached === 'string' ? JSON.parse(cached) : cached;
             return res.json(parsedData);
@@ -60,10 +67,10 @@ router.get('/servers', verifyToken, async (req, res) => {
 
         const [servers] = await pool.query('SELECT * FROM servers');
 
-        await redis.set(cacheKey, JSON.stringify(servers), 'EX' , 3600);
+        await redis.set(cacheKey, JSON.stringify(servers), 'EX', 3600);
         res.status(200).json(servers);
 
-    } catch(error) {
+    } catch (error) {
         console.log(error.message)
         res.status(500).json({ error: "cannot Fetch Database error" });
     }
@@ -90,8 +97,8 @@ router.get(`/servers/me`, verifyToken, async (req, res) => {
             userInfo: userInfo[0]
         });
 
-    } catch(error) {
-        console.log(error.message);
+    } catch (error) {
+        console.error("FULL ROUTE CRASH ERROR:", error);
         res.status(500).json({ error: "cannot Fetch Database error" });
     }
 
