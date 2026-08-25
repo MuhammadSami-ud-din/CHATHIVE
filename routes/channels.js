@@ -110,7 +110,7 @@ router.get('/channels/:server_id', verifyToken, async (req, res) => {
 
     }
     catch(error){
-        console.log(error.message)
+        console.log('error is ' , error)
         return res.status(500).json({ error: "Database error" })
     }
 })
