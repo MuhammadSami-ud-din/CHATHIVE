@@ -26,6 +26,8 @@ const secret = process.env.JWT_SECRET;
 
 
 
+
+
 const loginRoute = require('./routes/login.js');
 const registerRoute = require('./routes/register.js');
 const serverRoute = require('./routes/servers.js');
