@@ -5,7 +5,7 @@ const verifyToken = require('../middleware/authMiddleWare');
 const { upload } = require('../config/cloudinary.js');
 const redis = require('../redis.js');
 
-router.post('/avatar-upload', verifyToken, upload.single('avatar', async (res, req) => {
+router.post('/avatar-upload', verifyToken, upload.single('avatar'), async (req, res) => {
     try {
         const userId = req.user.id;
 
@@ -38,6 +38,6 @@ router.post('/avatar-upload', verifyToken, upload.single('avatar', async (res, r
 
 
 
-}))
+})
 
 module.exports = router;
