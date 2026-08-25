@@ -79,7 +79,12 @@ router.get('/channels/:server_id', verifyToken, async (req, res) => {
 
         const [Role] = await pool.query(`SELECT * FROM server_members where server_id = ? AND members_id = ? AND role IN ('owner' , 'admin')`, [server_id, user_id]);
 
-        const cached = await redis.get(cacheKey);
+        let cached = null;
+        try {
+            cached = await redis.get(cacheKey);
+        } catch (redisError) {
+            console.warn("Redis fallback triggered:", redisError.message);
+        }
         if (cached) {
             const cachedData = JSON.parse(cached);
 
@@ -93,7 +98,7 @@ router.get('/channels/:server_id', verifyToken, async (req, res) => {
         if (query.length === 0) {
             const responseData = { message: "No channels found", Channels: [], Serverinfo: queryServer }
             await redis.set(cacheKey, JSON.stringify(responseData), 'EX', 1800);
-            return res.status(200).json({...responseData , role: Role });
+            return res.status(200).json({ ...responseData, role: Role });
         }
 
 
@@ -109,8 +114,8 @@ router.get('/channels/:server_id', verifyToken, async (req, res) => {
         return res.status(200).json({ ...responseData, role: Role });
 
     }
-    catch(error){
-        console.log('error is ' , error)
+    catch (error) {
+        console.log('error is ', error)
         return res.status(500).json({ error: "Database error" })
     }
 })
