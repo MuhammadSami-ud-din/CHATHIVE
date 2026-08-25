@@ -36,6 +36,7 @@ const joinRoute = require('./routes/join.js');
 const messageRoute = require('./routes/messages.js');
 const DMRoute = require('./routes/directMessages.js');
 const { Socket } = require('dgram');
+const PPRoute = require('./routes/user.js');
 
 app.use(express.json());
 app.use(cors({
@@ -51,6 +52,7 @@ app.use(channelRoute);
 app.use(joinRoute);
 app.use(messageRoute);
 app.use(DMRoute);
+app.use(PPRoute);
 
 app.get('/test-db' ,verifyToken, async(req , res)=>{
     try{

@@ -12,6 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -19,6 +20,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.5.0",
     "mongoose": "^9.9.1",
+    "multer": "^2.2.0",
+    "multer-storage-cloudinary": "^4.0.0",
     "mysql2": "^3.23.2",
     "socket.io": "^4.8.3"
   },
@@ -27,6 +30,9 @@
   },
   "allowScripts": {
     "socket.io@4.8.3": true,
-    "ioredis@6.0.0": true
+    "ioredis@6.0.0": true,
+    "multer@2.2.0": true,
+    "cloudinary@1.41.3": true,
+    "multer-storage-cloudinary@4.0.0": true
   }
 }
