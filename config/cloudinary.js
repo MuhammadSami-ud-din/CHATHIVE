@@ -2,7 +2,7 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 
-// Re-verify config setup
+// Configure Cloudinary
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -12,6 +12,11 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: async (req, file) => {
+        // Debug check: log if environment variables are missing
+        if (!process.env.CLOUDINARY_CLOUD_NAME) {
+            console.error("CRITICAL ERROR: CLOUDINARY_CLOUD_NAME is undefined!");
+        }
+
         return {
             folder: 'discord_avatars', 
             allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
