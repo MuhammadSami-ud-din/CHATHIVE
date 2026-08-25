@@ -90,7 +90,8 @@ router.get(`/servers/me`, verifyToken, async (req, res) => {
             userInfo: userInfo[0]
         });
 
-    } catch {
+    } catch(error) {
+        console.log(error.message);
         res.status(500).json({ error: "cannot Fetch Database error" });
     }
 
