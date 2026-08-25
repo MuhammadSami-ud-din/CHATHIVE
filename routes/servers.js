@@ -71,7 +71,7 @@ router.get('/servers', verifyToken, async (req, res) => {
         res.status(200).json(servers);
 
     } catch (error) {
-        console.log(error.message)
+          console.log('error is ', error)
         res.status(500).json({ error: "cannot Fetch Database error" });
     }
 
