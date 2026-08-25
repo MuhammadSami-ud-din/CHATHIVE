@@ -4,6 +4,7 @@ const express = require('express');
 const pool = require('../config/db.js');
 const verifyToken = require('../middleware/authMiddleWare');
 const router = express.Router();
+const redis = require('../redis.js');
 
 
 router.post('/channels/:server_id', verifyToken, async (req, res) => {
@@ -39,6 +40,7 @@ router.post('/channels/:server_id', verifyToken, async (req, res) => {
             }
 
 
+            await redis.del('channels:all-' + server_id)
 
             return res.status(201).json({
                 message: "Channel created successfully",
@@ -55,8 +57,8 @@ router.post('/channels/:server_id', verifyToken, async (req, res) => {
     }
     catch (error) {
         console.log(error);
-        if (error.code === "ER_DUP_ENTRY"){
-          return res.status(401).json({error : "Channel already exists"});
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(401).json({ error: "Channel already exists" });
         }
         return res.status(500).json({ error: "Database error" });
     }
@@ -68,26 +70,48 @@ router.get('/channels/:server_id', verifyToken, async (req, res) => {
     const { server_id } = req.params;
     const user_id = req.user.id;
 
+    const cacheKey = `channels:all-${server_id}`;
+
+
+
+
     try {
-        const [query] = await pool.query(`SELECT * FROM channels where current_server_id = ?`, [server_id]);
-        const [queryServer] = await pool.query(`SELECT * FROM servers where server_id = ?`, [server_id]);
+
         const [Role] = await pool.query(`SELECT * FROM server_members where server_id = ? AND members_id = ? AND role IN ('owner' , 'admin')`, [server_id, user_id]);
 
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            const cachedData = JSON.parse(cached);
+
+            return res.status(200).json({ ...cachedData, role: Role });
+        }
+
+        const [query] = await pool.query(`SELECT * FROM channels where current_server_id = ?`, [server_id]);
+        const [queryServer] = await pool.query(`SELECT * FROM servers where server_id = ?`, [server_id]);
+
+
         if (query.length === 0) {
-            return res.status(200).json({ message: "No channels found", Channels: [], Serverinfo: queryServer, role: Role });
+            const responseData = { message: "No channels found", Channels: [], Serverinfo: queryServer }
+            await redis.set(cacheKey, JSON.stringify(responseData), 'EX', 1800);
+            return res.status(200).json({...responseData , role: Role });
         }
 
 
-
-        res.status(201).json({
+        const responseData = {
             message: 'Success',
             Channels: query,
             Serverinfo: queryServer,
-            role: Role
-        });
+
+        };
+
+        await redis.set(cacheKey, JSON.stringify(responseData), 'EX', 1800);
+
+        return res.status(200).json({ ...responseData, role: Role });
+
     }
-    catch {
-       return  res.status(500).json({ error: "Database error" })
+    catch(error){
+        console.log(error.message)
+        return res.status(500).json({ error: "Database error" })
     }
 })
 
