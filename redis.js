@@ -1,10 +1,18 @@
-require ('dotenv').config();
-const Redis = require('ioredis')
+require('dotenv').config();
+const Redis = require('ioredis');
 
-const redis = new Redis(process.env.REDIS_URL)
 
-redis.on('connect' , ()=> console.log('redis connected'))
+const redis = new Redis(process.env.REDIS_URL, {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+    retryStrategy(times) {
+        return 10000; 
+    }
+});
 
-redis.on('error' ,  (err)=> console.log('Error occured:' , err.message))
+redis.on('connect', () => console.log('🚀 Redis connected successfully!'));
+redis.on('error', (err) => {
+    console.error('🛑 REDIS CONNECTION ERROR:', err.message);
+});
 
 module.exports = redis;
