@@ -15,6 +15,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.5.0",
     "mongoose": "^9.9.1",
@@ -25,6 +26,7 @@
     "nodemon": "^3.1.14"
   },
   "allowScripts": {
-    "socket.io@4.8.3": true
+    "socket.io@4.8.3": true,
+    "ioredis@6.0.0": true
   }
 }
