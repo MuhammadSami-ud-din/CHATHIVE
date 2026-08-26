@@ -35,10 +35,13 @@ router.post('/avatar-upload/:server_id', verifyToken, (req, res) => {
             if (updateResult.affectedRows === 0) {
                 return res.status(404).json({ error: "User not found" });
             }
+            
+            await redis.del('channels:all-' + server_id)
+
 
             return res.status(200).json({
                 message: "Profile picture updated successfully",
-                avatar: imageUrl
+                server_img : imageUrl
             });
 
         } catch (dbError) {
