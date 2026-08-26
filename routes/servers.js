@@ -6,36 +6,60 @@ const pool = require('../config/db.js');
 const router = express.Router();
 const mysql2 = require('mysql2/promise');
 const redis = require('../redis.js');
+const { upload } = require('../config/cloudinary.js');
 
 
 
 
 router.post('/servers', verifyToken, async (req, res) => {
+    upload.single('Image')(req,res, async (err)=>{
+    if (err){
+        console.error("Multer/Cloudinary error" , err)
+        return res.status(500).json({
+                error: err.message || "Cloudinary upload failed",
+                details: err
+            });
+        }
+       
+
     const { serverName, serverDescription, serverDest } = req.body;
     if (!serverDescription || !serverDest || !serverName) {
         return res.status(400).json({ error: "All field are required" });
     }
 
+   
+
+  
+
     const owner = req.user.id;
+    let connection ; 
 
     try {
-        const [query] = await pool.query(`INSERT INTO servers (server_name , server_description, server_dest , owner_id )
-        VALUES (? ,? ,? , ?)`, [serverName, serverDescription, serverDest, owner]);
+          connection = await pool.getConnection()
+       await connection.beginTransaction();
+         const imageUrl = req?.file?.path;
 
 
-        await pool.query(`INSERT INTO server_members ( server_id , members_id , role)
+        const [query] = await connection.query(`INSERT INTO servers (server_name , server_description, server_dest , owner_id , avatar )
+        VALUES (? ,? ,? , ? , ?)`, [serverName, serverDescription, serverDest, owner , imageUrl || null]);
+
+
+        await connection.query(`INSERT INTO server_members ( server_id , members_id , role)
         VALUES (?,?,?)`, [query.insertId, owner, "owner"]);
+
+        await connection.commit();
 
         const [newServer] = await pool.query(`SELECT * FROM servers WHERE server_id = ? `, [query.insertId]);
 
         await redis.del('servers:all');
 
-        res.status(201).json({
+        return res.status(201).json({
             message: "server created successfully",
             newServer: newServer[0]
         })
     }
     catch (error) {
+        await connection.rollback();
         console.log(error);
         if (error.code === "ER_DUP_ENTRY") {
             return res.status(401).json({ error: "server already exists" });
@@ -44,6 +68,10 @@ router.post('/servers', verifyToken, async (req, res) => {
 
 
     }
+    finally {
+        connection.release();
+    }
+     })
 })
 
 
@@ -74,6 +102,7 @@ router.get('/servers', verifyToken, async (req, res) => {
           console.log('error is ', error)
         res.status(500).json({ error: "cannot Fetch Database error" });
     }
+    
 
 })
 
