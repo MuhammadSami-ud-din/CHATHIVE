@@ -5,8 +5,9 @@ const verifyToken = require('../middleware/authMiddleWare');
 const { upload } = require('../config/cloudinary.js');
 const redis = require('../redis.js');
 
-router.post('/avatar-upload', verifyToken, (req, res) => {
-    // 1. Intercept Multer execution to catch middleware errors explicitly
+router.post('/avatar-upload/:server_id', verifyToken, (req, res) => {
+    const {server_id} = req.params
+  
     upload.single('avatar')(req, res, async (err) => {
         if (err) {
             // THIS IS WHERE YOUR OBJECT ERROR WAS HIDDEN:
@@ -27,17 +28,12 @@ router.post('/avatar-upload', verifyToken, (req, res) => {
             const imageUrl = req.file.path;
 
             const [updateResult] = await pool.query(
-                `UPDATE users SET avatar = ? WHERE id = ?`,
-                [imageUrl, userId]
+                `UPDATE servers SET server_img = ? WHERE server_id = ?`,
+                [imageUrl , server_id]
             );
 
             if (updateResult.affectedRows === 0) {
                 return res.status(404).json({ error: "User not found" });
-            }
-
-            // Invalidate user cache if Redis is active
-            if (redis && redis.status === 'ready') {
-                await redis.del(`user:${userId}`).catch(console.error);
             }
 
             return res.status(200).json({
