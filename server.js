@@ -83,9 +83,18 @@ jwt.verify(token , secret  , (err , decoded)=>{
 })
 })
 
+const onlineUsers = new Map();
 
 io.on('connection' , (socket)=>{
-   console.log(' A user Connected' , socket.id , req.user.id );
+   console.log(' A user Connected' , socket.id , socket.user.id );
+   const userId = socket.user.id;
+
+   if(!onlineUsers.has(userId)){
+    onlineUsers.set(userId , new Set());
+   }
+   onlineUsers.get(userId).add(socket.id);
+
+   io.emit('get_online_users' , [...onlineUsers.keys()]);
 
    socket.on('join_channel' , (channel_id)=>{
     socket.join(`channel_${channel_id}`);
@@ -99,6 +108,16 @@ io.on('connection' , (socket)=>{
 
    socket.on('disconnect' , ()=>{
     console.log('A user disconnected' , socket.id);
+    const userSockets = onlineUsers.get(socket.user.id);
+    if(userSockets){
+      userSockets.delete(socket.id);
+    }
+    if(userSockets.size === 0){
+      onlineUsers.delete(socket.user.id);
+    }
+
+    io.emit('get_online_users' , [...onlineUsers.keys()]);
+
    })
 
 })
