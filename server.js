@@ -53,6 +53,7 @@ app.use(joinRoute);
 app.use(messageRoute);
 app.use(DMRoute);
 app.use(PPRoute);
+console.log('hello')
 
 app.get('/test-db' ,verifyToken, async(req , res)=>{
     try{
@@ -87,13 +88,13 @@ const onlineUsers = new Map();
 
 io.on('connection' , (socket)=>{
    console.log(' A user Connected' , socket.id , socket.user.id );
-   const userId = socket.user.id;
+   const userId = socket.user?.id || socket.user?.userId || socket.user?._id;
 
    if(!onlineUsers.has(userId)){
     onlineUsers.set(userId , new Set());
    }
    onlineUsers.get(userId).add(socket.id);
-
+   console.log('Emitting online users:', [...onlineUsers.keys()]);
    io.emit('get_online_users' , [...onlineUsers.keys()]);
 
    socket.on('join_channel' , (channel_id)=>{
