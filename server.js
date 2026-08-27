@@ -85,7 +85,7 @@ jwt.verify(token , secret  , (err , decoded)=>{
 
 
 io.on('connection' , (socket)=>{
-   console.log(' A user Connected' , socket.id);
+   console.log(' A user Connected' , socket.id , req.user.id );
 
    socket.on('join_channel' , (channel_id)=>{
     socket.join(`channel_${channel_id}`);
