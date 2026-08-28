@@ -53,7 +53,7 @@ app.use(joinRoute);
 app.use(messageRoute);
 app.use(DMRoute);
 app.use(PPRoute);
-console.log('hello')
+
 
 app.get('/test-db' ,verifyToken, async(req , res)=>{
     try{
@@ -99,7 +99,7 @@ io.on('connection' , (socket)=>{
 
    socket.on('join_channel' , (channel_id)=>{
     socket.join(`channel_${channel_id}`);
-    console.log(`user ${socket.user.id} joined the channel: ${channel_id}`)
+    console.log(`user ${socket.user.id} joined the channel: ${channel_id}`);
    })
 
    socket.on('join_conversation' , (conversation_id)=>{
