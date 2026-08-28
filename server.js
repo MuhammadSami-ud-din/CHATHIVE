@@ -97,6 +97,10 @@ io.on('connection', (socket) => {
   console.log('Emitting online users:', [...onlineUsers.keys()]);
   io.emit('get_online_users', [...onlineUsers.keys()]);
 
+  socket.on('get_online_users_request', () => {
+    socket.emit('get_online_users', [...onlineUsers.keys()]);
+  });
+
   socket.on('start_typing', ({ conversation_id }) => {
     console.log('hi', conversation_id , 'start')
     socket.to(`conversation_${conversation_id}`).emit('start_typing', { userId: socket.user.id })
@@ -119,12 +123,12 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('A user disconnected', socket.id);
-    const userSockets = onlineUsers.get(socket.user.id);
+    const userSockets = onlineUsers.get(userId);
     if (userSockets) {
       userSockets.delete(socket.id);
     }
     if (userSockets.size === 0) {
-      onlineUsers.delete(socket.user.id);
+      onlineUsers.delete(userId);
     }
 
     io.emit('get_online_users', [...onlineUsers.keys()]);

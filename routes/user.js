@@ -37,6 +37,7 @@ router.post('/avatar-upload/:server_id', verifyToken, (req, res) => {
             }
 
             await redis.del('channels:all-' + server_id)
+             await redis.del('servers:all');
 
 
             return res.status(200).json({
@@ -83,6 +84,7 @@ router.post('/img-upload/:server_id', verifyToken, (req, res) => {
             }
             
             await redis.del('channels:all-' + server_id)
+             await redis.del('servers:all');
 
 
             return res.status(200).json({
