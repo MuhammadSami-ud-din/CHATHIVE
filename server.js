@@ -89,8 +89,7 @@ const channelTyping = new Map();
 
 io.on('connection', (socket) => {
   console.log(' A user Connected', socket.id, socket.user.id);
-  const userId = socket.user?.id || socket.user?.userId || socket.user?._id;
-
+  const userId = String(socket.user?.id || socket.user?.userId || socket.user?._id);
   if (!onlineUsers.has(userId)) {
     onlineUsers.set(userId, new Set());
   }
@@ -104,12 +103,12 @@ io.on('connection', (socket) => {
 
   socket.on('start_typing', ({ conversation_id }) => {
     console.log('hi', conversation_id , 'start')
-    socket.to(`conversation_${conversation_id}`).emit('start_typing', { userId: socket.user.id })
+    socket.to(`conversation_${conversation_id}`).emit('start_typing', { userId })
   })
 
   socket.on('stop_typing', ({ conversation_id }) => {
     console.log('hi', conversation_id , 'stop')
-    socket.to(`conversation_${conversation_id}`).emit('stop_typing', { userId: socket.user.id })
+    socket.to(`conversation_${conversation_id}`).emit('stop_typing', { userId })
   })
 
   socket.on('join_channel', (channel_id) => {
@@ -118,29 +117,45 @@ io.on('connection', (socket) => {
   })
 
   socket.on('channel_typing' , (channel_id)=>{
-    
-    if (!channelTyping.has(userId)) {
-    channelTyping.set(userId, new Set());
-  }
-  onlineUsers.get(userId).add(socket.id);
-  console.log('hi', channel_id , 'start' , 'person' , [...channelTyping.keys()])
+    const chId = String(channel_id);
 
-    socket.to(`channel_${channel_id}`).emit('channel_typing' , [...channelTyping.keys()] )
+    if (!channelTyping.has(chId)) {
+      channelTyping.set(chId, new Map());
+    }
+
+    const channelMap = channelTyping.get(chId);
+    if (!channelMap.has(userId)) {
+      channelMap.set(userId, new Set());
+    }
+    channelMap.get(userId).add(socket.id);
+
+    const activeTypingUsers = Array.from(channelMap.keys());
+    console.log('hi', chId , 'start' , 'person' , activeTypingUsers)
+
+    socket.to(`channel_${chId}`).emit('channel_typing' , activeTypingUsers )
   })
 
   socket.on('stop_channel_typing', (channel_id) => {
+    const chId = String(channel_id);
+    const channelMap = channelTyping.get(chId);
 
-    const userSockets = channelTyping.get(userId);
-    if (userSockets) {
-      channelTyping.delete(socket.id);
+    if (channelMap) {
+      const userSockets = channelMap.get(userId);
+      if (userSockets) {
+        userSockets.delete(socket.id);
+        if (userSockets.size === 0) {
+          channelMap.delete(userId);
+        }
+      }
+      if (channelMap.size === 0) {
+        channelTyping.delete(chId);
+      }
     }
-    if (userSockets.size === 0) {
-      channelTyping.delete(userId);
-    }
-     console.log('hi', channel_id , 'stop' , 'person' , [...channelTyping.keys()])
 
+    const activeTypingUsers = channelMap ? Array.from(channelMap.keys()) : [];
+    console.log('hi', chId , 'stop' , 'person' , activeTypingUsers)
 
-    socket.to(`channel_${channel_id}`).emit('stop_channel_typing', [...channelTyping.keys()])
+    socket.to(`channel_${chId}`).emit('stop_channel_typing', activeTypingUsers)
   })
 
   socket.on('join_conversation', (conversation_id) => {
@@ -156,11 +171,26 @@ io.on('connection', (socket) => {
     if (userSockets) {
       userSockets.delete(socket.id);
     }
-    if (userSockets.size === 0) {
+    if (userSockets && userSockets.size === 0) {
       onlineUsers.delete(userId);
     }
 
     io.emit('get_online_users', [...onlineUsers.keys()]);
+
+    channelTyping.forEach((channelMap, chId) => {
+      const userMapSockets = channelMap.get(userId);
+      if (userMapSockets) {
+        userMapSockets.delete(socket.id);
+        if (userMapSockets.size === 0) {
+          channelMap.delete(userId);
+        }
+        if (channelMap.size === 0) {
+          channelTyping.delete(chId);
+        }
+        const remainingUsers = Array.from(channelMap.keys());
+        io.to(`channel_${chId}`).emit('stop_channel_typing', remainingUsers);
+      }
+    });
 
   })
 

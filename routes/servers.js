@@ -110,7 +110,10 @@ router.get(`/servers/me`, verifyToken, async (req, res) => {
     const userId = req.user.id;
     try {
         const [servers] = await pool.query(`SELECT * FROM servers S JOIN server_members SM ON S.server_id = SM.server_id
-        WHERE SM.members_id = ? ` , [userId]);
+        WHERE SM.members_id = ? AND SM.role IN ('member' , 'admin') ` , [userId]);
+
+        const [myservers] = await pool.query(`SELECT * FROM servers S JOIN server_members SM ON S.server_id = SM.server_id
+        WHERE SM.members_id = ? AND SM.role = ? ` , [userId , 'owner']);
 
         const [userInfo] = await pool.query(`SELECT username , id , avatar , created_at FROM USERS WHERE id = ? `, [userId]);
 
@@ -123,7 +126,8 @@ router.get(`/servers/me`, verifyToken, async (req, res) => {
 
         return res.status(200).json({
             servers,
-            userInfo: userInfo[0]
+            userInfo: userInfo[0],
+            myservers
         });
 
     } catch (error) {

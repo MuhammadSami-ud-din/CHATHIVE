@@ -10,7 +10,7 @@ router.post('/avatar-upload/:server_id', verifyToken, (req, res) => {
   
     upload.single('avatar')(req, res, async (err) => {
         if (err) {
-            // THIS IS WHERE YOUR OBJECT ERROR WAS HIDDEN:
+          
             console.error("Multer / Cloudinary Upload Error Details:", err);
             return res.status(500).json({
                 error: err.message || "Cloudinary upload failed",
@@ -57,7 +57,7 @@ router.post('/img-upload/:server_id', verifyToken, (req, res) => {
   
     upload.single('Image')(req, res, async (err) => {
         if (err) {
-            // THIS IS WHERE YOUR OBJECT ERROR WAS HIDDEN:
+           
             console.error("Multer / Cloudinary Upload Error Details:", err);
             return res.status(500).json({
                 error: err.message || "Cloudinary upload failed",
@@ -90,6 +90,53 @@ router.post('/img-upload/:server_id', verifyToken, (req, res) => {
             return res.status(200).json({
                 message: "Profile picture updated successfully",
                 server_img : imageUrl
+            });
+
+        } catch (dbError) {
+            console.error("Database Update Error:", dbError);
+            return res.status(500).json({ error: "Failed to update database profile" });
+        }
+    });
+});
+
+
+
+
+router.post('/avatar-upload', verifyToken, (req, res) => {
+
+  
+    upload.single('avatar')(req, res, async (err) => {
+        if (err) {
+            
+            console.error("Multer / Cloudinary Upload Error Details:", err);
+            return res.status(500).json({
+                error: err.message || "Cloudinary upload failed",
+                details: err
+            });
+        }
+
+        try {
+            const userId = req.user.id;
+
+            if (!req.file) {
+                return res.status(400).json({ error: 'Please upload an image file.' });
+            }
+
+            const imageUrl = req.file.path;
+
+            const [updateResult] = await pool.query(
+                `UPDATE USERS SET avatar = ? WHERE id = ?`,
+                [imageUrl , userId]
+            );
+
+            if (updateResult.affectedRows === 0) {
+                return res.status(404).json({ error: "User not found" });
+            }
+
+        
+            return res.status(200).json({
+                message: "Profile picture updated successfully",
+                avatar : imageUrl
             });
 
         } catch (dbError) {
