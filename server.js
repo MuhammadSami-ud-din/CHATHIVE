@@ -85,6 +85,7 @@ io.use((socket, next) => {
 })
 
 const onlineUsers = new Map();
+const channelTyping = new Map();
 
 io.on('connection', (socket) => {
   console.log(' A user Connected', socket.id, socket.user.id);
@@ -116,10 +117,38 @@ io.on('connection', (socket) => {
     console.log(`user ${socket.user.id} joined the channel: ${channel_id}`);
   })
 
+  socket.on('channel_typing' , (channel_id)=>{
+    
+    if (!channelTyping.has(userId)) {
+    channelTyping.set(userId, new Set());
+  }
+  onlineUsers.get(userId).add(socket.id);
+  console.log('hi', channel_id , 'start' , 'person' , [...channelTyping.keys()])
+
+    socket.to(`channel_${channel_id}`).emit('channel_typing' , [...channelTyping.keys()] )
+  })
+
+  socket.on('stop_channel_typing', (channel_id) => {
+
+    const userSockets = channelTyping.get(userId);
+    if (userSockets) {
+      channelTyping.delete(socket.id);
+    }
+    if (userSockets.size === 0) {
+      channelTyping.delete(userId);
+    }
+     console.log('hi', channel_id , 'stop' , 'person' , [...channelTyping.keys()])
+
+
+    socket.to(`channel_${channel_id}`).emit('stop_channel_typing', [...channelTyping.keys()])
+  })
+
   socket.on('join_conversation', (conversation_id) => {
     socket.join(`conversation_${conversation_id}`);
     console.log(`user ${socket.user.id} joined the Conversation: ${conversation_id}`)
   })
+
+  
 
   socket.on('disconnect', () => {
     console.log('A user disconnected', socket.id);
