@@ -114,10 +114,16 @@ catch(error){
         newConversation.conversation_id = newConversation._id;
         const savedConversation = await newConversation.save();
 
+        const [receiverInfo] = await pool.query('SELECT username , id , avatar  FROM USERS WHERE id= ?' , [receiver_id])
+
+       
+
        
         return res.status(201).json({
             message: "New Conversation Created",
-            conversation: savedConversation
+            conversation: savedConversation,
+            FriendsInfo : receiverInfo[0]
+
         });
 
     } catch (error) {
@@ -157,7 +163,7 @@ router.get('/messages/dm/:receiver_id' , verifyToken , async(req , res)=>{
         }
      ])
 
-      const [query] = await pool.query(`SELECT * FROM USERS WHERE id=?`, [receiverNum ])
+      const [query] = await pool.query(`SELECT * FROM USERS WHERE id=?`, [receiver_id])
 
      if (query.length === 0) {
             return res.status(404).json({ success: false, error: "User not found" });
