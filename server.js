@@ -112,6 +112,11 @@ io.on('connection', (socket) => {
   })
 
   socket.on('join_channel', (channel_id) => {
+    Array.from(socket.rooms).forEach((room)=>{
+      if (room.startsWith('channel_')){
+        socket.leave(room)
+      }
+    })
     socket.join(`channel_${channel_id}`);
     console.log(`user ${socket.user.id} joined the channel: ${channel_id}`);
   })
