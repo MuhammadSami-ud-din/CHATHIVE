@@ -115,7 +115,7 @@ router.get(`/servers/me`, verifyToken, async (req, res) => {
         const [myservers] = await pool.query(`SELECT * FROM servers S JOIN server_members SM ON S.server_id = SM.server_id
         WHERE SM.members_id = ? AND SM.role = ? ` , [userId , 'owner']);
 
-        const [userInfo] = await pool.query(`SELECT username , id , avatar , created_at FROM USERS WHERE id = ? `, [userId]);
+        const [userInfo] = await pool.query(`SELECT username , id , avatar  , email , created_at FROM USERS WHERE id = ? `, [userId]);
 
         if (userInfo.length === 0) {
             return res.status(404).json({ error: "Cannot find the user" });
