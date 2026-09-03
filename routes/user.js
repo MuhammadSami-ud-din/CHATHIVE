@@ -166,7 +166,7 @@ router.delete('/delete/account' , verifyToken , async (req , res)=>{
         }
 
         return res.status(200).json({
-            success: true,
+            message : 'Account deleted successfully',
             user: userDataForFrontend
         });
 
