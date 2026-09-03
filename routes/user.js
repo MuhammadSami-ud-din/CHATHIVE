@@ -146,4 +146,35 @@ router.post('/avatar-upload', verifyToken, (req, res) => {
     });
 });
 
+
+
+router.delete('/delete/account' , verifyToken , async (req , res)=>{
+    const userId = req.user.id;
+    
+    try {
+        const [rows] = await pool.query(`SELECT username, id, avatar FROM USERS WHERE id = ?`, [userId]);
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        const userDataForFrontend = rows[0];
+
+        const [result] = await pool.query(`DELETE FROM USERS WHERE id = ?`, [userId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({ error: 'Failed to delete row from database' });
+        }
+
+        return res.status(200).json({
+            success: true,
+            user: userDataForFrontend
+        });
+
+    } catch(error) {
+        console.error("Database Error:", error);
+        return res.status(500).json({ error: 'Cannot Delete the Account' });
+    }
+});
+
+
 module.exports = router;
