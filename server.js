@@ -107,7 +107,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on('stop_typing', ({ conversation_id }) => {
-    console.log('hi', conversation_id , 'stop')
+    console.log( conversation_id , 'stop')
     socket.to(`conversation_${conversation_id}`).emit('stop_typing', { userId })
   })
 
