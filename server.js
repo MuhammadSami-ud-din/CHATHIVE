@@ -168,6 +168,51 @@ io.on('connection', (socket) => {
     console.log(`user ${socket.user.id} joined the Conversation: ${conversation_id}`)
   })
 
+
+  socket.on('call_user' , ({receiverId , offer , callerInfo})=>{
+    const userId = socket.id;
+
+   
+
+    const receiverSocketId = onlineUsers.get(receiverId);
+    
+     if(receiverSocketId === userId) return ;
+
+    if(receiverSocketId){
+      io.to(receiverSocketId).emit('incoming_call' , {
+        offer , 
+        from : callerInfo
+      })
+    }else{
+      socket.emit('call_failed' , {reason : 'User is Offline '});
+    }
+  })
+
+  socket.on('answer_call', ({targetUserId , answer}) => {
+    const targetSocketId = onlineUsers.get(targetUserId);
+
+    if(targetSocketId){
+      io.to(targetSocketId).emit('call_answered' , {answer});
+    }
+  })
+
+   socket.on('ice_candidate', ({targetUserId , candidate}) => {
+    const targetSocketId = onlineUsers.get(targetUserId);
+
+    if(targetSocketId){
+      io.to(targetSocketId).emit('ice_candidate' , {candidate});
+    }
+  })
+
+   socket.on('end_call', ({targetUserId}) => {
+    const targetSocketId = onlineUsers.get(targetUserId);
+
+    if(targetSocketId){
+      io.to(targetSocketId).emit('call_ended');
+    }
+  })
+
+
   
 
   socket.on('disconnect', () => {
