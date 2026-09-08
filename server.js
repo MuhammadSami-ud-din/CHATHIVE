@@ -172,10 +172,8 @@ io.on('connection', (socket) => {
   socket.on('call_user' , ({receiverId , offer , callerInfo})=>{
     const userId = socket.id;
 
-   
-
     const receiverSocketId = onlineUsers.get(receiverId);
-    
+
      if(receiverSocketId === userId) return ;
 
     if(receiverSocketId){
@@ -188,7 +186,8 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('answer_call', ({targetUserId , answer}) => {
+
+   socket.on('answer_call', ({targetUserId , answer}) => {
     const targetSocketId = onlineUsers.get(targetUserId);
 
     if(targetSocketId){
