@@ -169,50 +169,94 @@ io.on('connection', (socket) => {
   })
 
 
-  socket.on('call_user' , ({receiverId , offer , callerInfo})=>{
-    const userId = socket.id;
+  // socket.on('call_user' , ({receiverId , offer , callerInfo})=>{
+  //   const userId = socket.id;
 
-    const receiverSocketId = onlineUsers.get(receiverId);
+  //   const receiverSocketId = onlineUsers.get(String(receiverId));
 
-     if(receiverSocketId === userId) return ;
+  //    if(receiverSocketId === userId) return ;
 
-    if(receiverSocketId){
-      io.to(receiverSocketId).emit('incoming_call' , {
-        offer , 
-        from : callerInfo
-      })
-    }else{
-      socket.emit('call_failed' , {reason : 'User is Offline '});
+  //   if(receiverSocketId){
+  //     io.to(receiverSocketId).emit('incoming_call' , {
+  //       offer , 
+  //       from : callerInfo
+  //     })
+  //   }else{
+  //     socket.emit('call_failed' , {reason : 'User is Offline '});
+  //   }
+  // })
+
+
+  //  socket.on('answer_call', ({targetUserId , answer}) => {
+  //   const targetSocketId = onlineUsers.get(targetUserId);
+
+  //   if(targetSocketId){
+  //     io.to(targetSocketId).emit('call_answered' , {answer});
+  //   }
+  // })
+
+  //  socket.on('ice_candidate', ({targetUserId , candidate}) => {
+  //   const targetSocketId = onlineUsers.get(targetUserId);
+
+  //   if(targetSocketId){
+  //     io.to(targetSocketId).emit('ice_candidate' , {candidate});
+  //   }
+  // })
+
+  //  socket.on('end_call', ({targetUserId}) => {
+  //   const targetSocketId = onlineUsers.get(targetUserId);
+
+  //   if(targetSocketId){
+  //     io.to(targetSocketId).emit('call_ended');
+  //   }
+  // })
+
+
+ // WebRTC Call Handlers
+  socket.on('call_user', ({ receiverId, offer, callerInfo }) => {
+    const targetUserId = String(receiverId);
+    const receiverSockets = onlineUsers.get(targetUserId);
+
+    if (receiverSockets && receiverSockets.size > 0) {
+      // Set ko Array mein convert karke saare active sockets ko call alert bhejo
+      const socketIds = Array.from(receiverSockets);
+      
+      io.to(socketIds).emit('incoming_call', {
+        offer,
+        from: callerInfo
+      });
+      console.log(`Incoming call alert sent to user ${targetUserId} across sockets:`, socketIds);
+    } else {
+      socket.emit('call_failed', { reason: 'User is Offline' });
     }
-  })
+  });
 
+  socket.on('answer_call', ({ targetUserId, answer }) => {
+    const targetSockets = onlineUsers.get(String(targetUserId));
 
-   socket.on('answer_call', ({targetUserId , answer}) => {
-    const targetSocketId = onlineUsers.get(targetUserId);
-
-    if(targetSocketId){
-      io.to(targetSocketId).emit('call_answered' , {answer});
+    if (targetSockets && targetSockets.size > 0) {
+      const socketIds = Array.from(targetSockets);
+      io.to(socketIds).emit('call_answered', { answer });
     }
-  })
+  });
 
-   socket.on('ice_candidate', ({targetUserId , candidate}) => {
-    const targetSocketId = onlineUsers.get(targetUserId);
+  socket.on('ice_candidate', ({ targetUserId, candidate }) => {
+    const targetSockets = onlineUsers.get(String(targetUserId));
 
-    if(targetSocketId){
-      io.to(targetSocketId).emit('ice_candidate' , {candidate});
+    if (targetSockets && targetSockets.size > 0) {
+      const socketIds = Array.from(targetSockets);
+      io.to(socketIds).emit('ice_candidate', { candidate });
     }
-  })
+  });
 
-   socket.on('end_call', ({targetUserId}) => {
-    const targetSocketId = onlineUsers.get(targetUserId);
+  socket.on('end_call', ({ targetUserId }) => {
+    const targetSockets = onlineUsers.get(String(targetUserId));
 
-    if(targetSocketId){
-      io.to(targetSocketId).emit('call_ended');
+    if (targetSockets && targetSockets.size > 0) {
+      const socketIds = Array.from(targetSockets);
+      io.to(socketIds).emit('call_ended');
     }
-  })
-
-
-  
+  });
 
   socket.on('disconnect', () => {
     console.log('A user disconnected', socket.id);
