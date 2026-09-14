@@ -213,7 +213,12 @@ io.on('connection', (socket) => {
 
 
  // WebRTC Call Handlers
-  socket.on('call_user', ({ receiverId, offer, callerInfo }) => {
+  
+ 
+ 
+ 
+ 
+ socket.on('call_user', ({ receiverId, offer, callerInfo }) => {
     const targetUserId = String(receiverId);
     const receiverSockets = onlineUsers.get(targetUserId);
 
@@ -248,6 +253,16 @@ io.on('connection', (socket) => {
       io.to(socketIds).emit('ice_candidate', { candidate });
     }
   });
+
+  socket.on('video_toggle', ({ targetUserId, videoOff }) => {
+    const targetSocketIds = onlineUsers.get(String(targetUserId));
+
+    if (targetSocketIds) {
+        targetSocketIds.forEach((socketId) => {
+            io.to(socketId).emit('video_toggle', { videoOff });
+        });
+    }
+});
 
   socket.on('end_call', ({ targetUserId }) => {
     const targetSockets = onlineUsers.get(String(targetUserId));
