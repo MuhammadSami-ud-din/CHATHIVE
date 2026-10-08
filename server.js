@@ -67,6 +67,17 @@ app.get('/test-db', verifyToken, async (req, res) => {
 
 })
 
+app.get('/health', async (req, res) => {
+  try {
+    const [row] = await pool.query('SELECT 1');
+    res.status(200).json({ status: "healthy", db: "connected" });
+  } catch (error) {
+    console.error("Health check error:", error.message);
+    res.status(500).json({ status: "unhealthy", error: error.message });
+  }
+});
+
+
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
 
