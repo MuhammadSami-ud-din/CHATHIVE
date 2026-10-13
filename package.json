@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/genai": "^2.28.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.6",
@@ -33,6 +34,7 @@
     "ioredis@6.0.0": true,
     "multer@2.2.0": true,
     "cloudinary@1.41.3": true,
-    "multer-storage-cloudinary@4.0.0": true
+    "multer-storage-cloudinary@4.0.0": true,
+    "@google/genai@2.28.0": true
   }
 }
