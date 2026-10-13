@@ -7,6 +7,8 @@ const DM = require('../models/dm.js');
 const conversations = require('../models/conversations.js');
 const verifyToken = require('../middleware/authMiddleWare.js');
 const router = express.Router();
+const API = require("../Gemini.js")
+const aiID = process.env.BOT_ID
 
 
 
@@ -58,10 +60,78 @@ router.post('/messages/dm/:receiver_id', verifyToken, async (req, res) => {
         io.to(`conversation_${savedMessage.conversation_id}`).emit('DMmessage', savedMessage);
 
 
-        return res.status(201).json({
+        res.status(201).json({
             message: "Message sent successfully",
             data: savedMessage
         });
+
+
+        const aiNum = Number(aiID);
+        let aiReply = ""
+
+        if (receiverNum === aiNum) {
+            try {
+
+                aiReply = await API.run(msg_content)
+
+
+
+
+                const aiMessage = new DM({
+                    conversation_id: targetConversationId,
+                    sender_id: aiID,
+                    content: aiReply
+
+                });
+
+                aiMessage.message_id = aiMessage._id;
+                const savedAIMessage = await aiMessage.save();
+
+                console.log(`conversation_${savedAIMessage.conversation_id}`, savedAIMessage);
+                io.to(`conversation_${savedAIMessage.conversation_id}`).emit('DMmessage', savedAIMessage);
+
+
+
+            }
+
+            catch (error) {
+                console.log(error.message)
+                console.error("Background AI Error:", error.message);
+
+                let errorReply = "Sorry, I ran into an issue processing your request.";
+                const errString = error.message || "";
+
+
+                if (errString.includes("Rate limit") || errString.includes("429") || errString.includes("RESOURCE_EXHAUSTED")) {
+                    errorReply = "⚠️ Free tier request limit reached (20 requests/day). Please try again later or use a fresh API key.";
+                }
+                else if (errString.includes("401") || errString.includes("403") || errString.includes("PERMISSION_DENIED")) {
+                    errorReply = "⚠️ Invalid or expired API key. Please check your configuration.";
+                }
+                else if (errString.includes("500") || errString.includes("503") || errString.includes("UNAVAILABLE")) {
+                    errorReply = "⚠️ Google's AI servers are temporarily busy. Please try again in a moment.";
+                }
+
+                const aierrorMessage = new DM({
+                    conversation_id: targetConversationId,
+                    sender_id: aiID,
+                    content: errorReply
+                });
+
+                aierrorMessage.message_id = aierrorMessage._id;
+                const savedAIerrorMessage = await aierrorMessage.save();
+
+                console.log(`conversation_${savedAIerrorMessage.conversation_id}`, savedAIerrorMessage);
+                io.to(`conversation_${savedAIerrorMessage.conversation_id}`).emit('DMmessage', savedAIerrorMessage);
+
+
+
+            }
+
+        }
+
+
+
 
     }
 
@@ -321,40 +391,40 @@ router.get('/users/search', verifyToken, async (req, res) => {
 
 
 router.delete('/messages/dm/delete/:msg_id', verifyToken, async (req, res) => {
-  const { msg_id } = req.params;
-  const sender_id = req.user.id;
+    const { msg_id } = req.params;
+    const sender_id = req.user.id;
 
-  try {
-    // 1. Search the DM collection by message_id
-    const message = await DM.findOne({ message_id: msg_id });
+    try {
+        // 1. Search the DM collection by message_id
+        const message = await DM.findOne({ message_id: msg_id });
 
-    if (!message) {
-      return res.status(404).json({ error: 'Message not found' });
+        if (!message) {
+            return res.status(404).json({ error: 'Message not found' });
+        }
+
+        // 2. Safely compare MySQL IDs (convert both to Numbers or Strings)
+        if (Number(message.sender_id) !== Number(sender_id)) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        // 3. DELETE FROM THE DM COLLECTION! (Not conversations)
+        await DM.deleteOne({ message_id: msg_id });
+
+        // 4. Socket Broadcast (using matching schema field conversation_id)
+        const conversationId = message.conversation_id;
+        const io = req.app.get('io');
+
+        io.to(`conversation_${conversationId}`).emit('delete_message', {
+            messageId: msg_id,
+            conversation_id: conversationId,
+        });
+
+        return res.status(200).json({ success: true, messageId: msg_id });
+
+    } catch (error) {
+        console.error('Delete error:', error);
+        return res.status(500).json({ error: 'Failed to delete message' });
     }
-
-    // 2. Safely compare MySQL IDs (convert both to Numbers or Strings)
-    if (Number(message.sender_id) !== Number(sender_id)) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    // 3. DELETE FROM THE DM COLLECTION! (Not conversations)
-    await DM.deleteOne({ message_id: msg_id });
-
-    // 4. Socket Broadcast (using matching schema field conversation_id)
-    const conversationId = message.conversation_id;
-    const io = req.app.get('io');
-
-    io.to(`conversation_${conversationId}`).emit('delete_message', {
-      messageId: msg_id,
-      conversation_id: conversationId,
-    });
-
-    return res.status(200).json({ success: true, messageId: msg_id });
-
-  } catch (error) {
-    console.error('Delete error:', error);
-    return res.status(500).json({ error: 'Failed to delete message' });
-  }
 });
 
 
