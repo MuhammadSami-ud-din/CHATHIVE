@@ -55,17 +55,19 @@ app.use(DMRoute);
 app.use(PPRoute);
 
 
-app.get('/test-db', verifyToken, async (req, res) => {
-  try {
-    const [row] = await pool.query('SELECT 1+1 AS result');
-    res.json({ message: "db connected", result: row[0].result })
-  }
-  catch (error) {
-    res.status(500).json({ message: error.message })
-  };
+// app.get('/test-db', verifyToken, async (req, res) => {
+//   try {
+//     const [row] = await pool.query('SELECT 1+1 AS result');
+//     res.json({ message: "db connected", result: row[0].result })
+//   }
+//   catch (error) {
+//     res.status(500).json({ message: error.message })
+//   };
 
 
-})
+// })
+
+app.get('/health', (req, res) => res.status(200).json({ status: 'healthy' }))
 
 app.get('/health', async (req, res) => {
   try {

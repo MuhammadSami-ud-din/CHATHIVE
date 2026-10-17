@@ -56,7 +56,7 @@ router.post('/channels/:server_id', verifyToken, async (req, res) => {
 
     }
     catch (error) {
-        console.log(error);
+         console.log('error is ', error)
         if (error.code === "ER_DUP_ENTRY") {
             return res.status(401).json({ error: "Channel already exists" });
         }
@@ -77,7 +77,14 @@ router.get('/channels/:server_id', verifyToken, async (req, res) => {
 
     try {
 
-        const [Role] = await pool.query(`SELECT * FROM server_members where server_id = ? AND members_id = ? AND role IN ('owner' , 'admin')`, [server_id, user_id]);
+        const [Role] = await pool.query(
+            `SELECT s.owner_id, sm.role 
+             FROM servers s
+             LEFT JOIN server_members sm 
+                ON sm.server_id = s.server_id AND sm.members_id = ?
+             WHERE s.server_id = ?`,
+            [user_id, server_id]
+        );
 
         let cached = null;
         try {
