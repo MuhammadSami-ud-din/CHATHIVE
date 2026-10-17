@@ -4,6 +4,7 @@ const mysql = require('mysql2');
 
 
 const pool = mysql.createPool({
+    ssl: { minVersion: 'TLSv1.2', rejectUnauthorized: true },
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     password: process.env.DB_PASSWORD,
