@@ -71,8 +71,24 @@ router.post('/messages/dm/:receiver_id', verifyToken, async (req, res) => {
 
         if (receiverNum === aiNum) {
             try {
+                const recent = await DM.find({ conversation_id: targetConversationId })
+                    .sort({ _id: -1 })
+                    .limit(10)
+                    .lean();
 
-                aiReply = await API.run(msg_content)
+                const history = [];
+                for (const m of recent.reverse()) {              // oldest -> newest
+                    if (m.content.startsWith("⚠️")) continue;    // skip the bot's error messages
+                    const role = m.sender_id === aiNum ? "model" : "user";
+                    const last = history[history.length - 1];
+                    if (last && last.role === role) {
+                        last.text += "\n" + m.content;           // merge consecutive same-role messages
+                    } else {
+                        history.push({ role, text: m.content });
+                    }
+                }
+
+                aiReply = await API.run(history);
 
 
 
